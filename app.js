@@ -347,7 +347,7 @@
       try {
         if (text === null) { fail("could not read the file: " + err); return; }
         if (!text.length) { fail("the file is empty. If it is in iCloud, wait for it to download and pick it again."); return; }
-        if (where === "settings" && unsaved && !confirm("You have " + unsaved + " unsaved answers. Replace them by loading this file?")) return;
+        if ((where === "settings" || begun) && unsaved && !confirm("You have " + unsaved + " unsaved answers. Replace them by loading this file?")) return;
         var p = loadText(text, f.name);
         if (!p.rows.length) { fail("no answers found. First line: " + (p.sample || "(empty)")); return; }
         onOk(f, p);
@@ -370,17 +370,34 @@
     });
   });
   $("fresh").addEventListener("click", function () {
-    if (stored(LOG_KEY) && !confirm("Start fresh? The log kept on this device will be replaced once you answer a card.")) return;
+    if ((begun && unsaved) || stored(LOG_KEY)) {
+      var warn = (begun && unsaved ? "You have " + unsaved + " answers not saved to a file. " : "") +
+        (stored(LOG_KEY) ? "The log kept on this device will be replaced once you answer a card. " : "");
+      if (!confirm("Start fresh? " + warn)) return;
+    }
     loadText("", "new log");
     begin();
   });
   $("goBtn").addEventListener("click", begin);
 
+  var begun = false;
   function begin() {
+    begun = true;
     persist();
     $("start").classList.remove("open");
     render();
   }
+  function goHome() {
+    $("startMsg").textContent = "";
+    $("startInfo").hidden = true;
+    var p = { bad: 0 };
+    $("deviceStatus").textContent = "Session in progress: " + summary(p) + (unsaved ? " " + unsaved + " answers not saved to a file." : "");
+    $("deviceGo").textContent = "Back to cards";
+    $("deviceGo").disabled = false;
+    $("start").classList.add("open");
+  }
+  $("homeBtn").addEventListener("click", goHome);
+  $("openSettingsHome").addEventListener("click", openSettings);
 
   $("fileSettings").addEventListener("change", function (e) {
     msg("");
@@ -494,7 +511,8 @@
   }
   bindSeg("dirSeg", "dir");
   bindSeg("rootSeg", "roots");
-  $("openSettings").addEventListener("click", function () { refreshSettings(); msg(""); $("panel").classList.add("open"); });
+  function openSettings() { refreshSettings(); msg(""); $("panel").classList.add("open"); }
+  $("openSettings").addEventListener("click", openSettings);
   $("closeSettings").addEventListener("click", function () { $("panel").classList.remove("open"); });
 
   // ---------- main controls ----------

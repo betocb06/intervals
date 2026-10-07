@@ -1,1 +1,1 @@
-var APP_VERSION = "0.4.0";
+var APP_VERSION = "0.5.0";

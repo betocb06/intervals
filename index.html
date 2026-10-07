@@ -14,8 +14,11 @@
 <body>
 <div id="app">
   <header>
-    <button id="openSettings" aria-label="Settings">Settings</button>
-    <button id="saveBtn" class="savebtn" aria-label="Save log">Save log</button>
+    <div class="nav">
+      <button id="homeBtn" class="navbtn" aria-label="Home">Home</button>
+      <button id="openSettings" class="navbtn" aria-label="Settings">Settings</button>
+    </div>
+    <button id="saveBtn" class="savebtn navbtn" aria-label="Save log">Save log</button>
   </header>
   <div class="substats" id="stats"></div>
   <main>
@@ -42,6 +45,7 @@
       <label class="filebtn">Load log file<input type="file" id="fileStart"></label>
       <button id="fresh">Start fresh</button>
     </div>
+    <div class="btns stack"><button id="openSettingsHome">Settings</button></div>
     <div class="msg" id="startMsg"></div>
     <div id="startInfo" hidden>
       <p id="startSummary"></p>
