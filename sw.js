@@ -1,7 +1,8 @@
 // Network first, so updates show up when online; cached copy when offline.
-// Bump CACHE when you add or rename files in ASSETS.
-var CACHE = "intervals-v1";
-var ASSETS = ["./", "index.html", "style.css", "app.js", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
+// Bump the version in version.js on every release; add new files to ASSETS.
+importScripts("version.js");
+var CACHE = "intervals-" + APP_VERSION;
+var ASSETS = ["./", "index.html", "version.js", "style.css", "app.js", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(ASSETS); }).then(function () { return self.skipWaiting(); }));

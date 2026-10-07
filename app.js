@@ -499,6 +499,7 @@
     if (keepOn) { persist(); toast("Copy kept on this device. Still save the file now and then."); }
     else { store(LOG_KEY, null); toast("Device copy deleted."); }
     showKeep();
+  Array.prototype.forEach.call(document.querySelectorAll(".vnum"), function (n) { n.textContent = APP_VERSION; });
   });
   showKeep();
 
