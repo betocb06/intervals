@@ -36,22 +36,18 @@
 <div class="panel open" id="start">
   <div class="inner">
     <h2 class="big">Intervals</h2>
-    <div id="deviceInfo" hidden>
-      <p><strong>Log found on this device.</strong> <span id="deviceSummary"></span></p>
-      <div class="btns stack"><button id="deviceGo" class="primary">Continue from it</button></div>
-      <p>Or use a file instead:</p>
-    </div>
-    <p>Load your log file to continue where you stopped, or start fresh. Unless you turn on "Keep log on this device" in Settings, nothing is kept between sessions, so save the log when you finish.</p>
+    <p id="deviceStatus"></p>
     <div class="btns stack">
-      <label class="filebtn">Load log<input type="file" id="fileStart"></label>
+      <button id="deviceGo" class="primary" disabled>Continue from this device</button>
+      <label class="filebtn">Load log file<input type="file" id="fileStart"></label>
       <button id="fresh">Start fresh</button>
     </div>
     <div class="msg" id="startMsg"></div>
-    <p class="ver">Version <span class="vnum"></span></p>
     <div id="startInfo" hidden>
       <p id="startSummary"></p>
       <div class="btns stack"><button id="goBtn" class="primary">Start</button></div>
     </div>
+    <p class="ver">Version <span class="vnum"></span></p>
   </div>
 </div>
 
@@ -83,13 +79,10 @@
     <div class="btns"><button id="keepBtn">Keep log on this device</button></div>
     <div class="btns">
       <label class="filebtn">Load another log<input type="file" id="fileSettings"></label>
-      <button id="showBtn">Show log text</button>
+      <button id="copyBtn">Copy diagnostics</button>
     </div>
-    <p>If saving a file does not work, show the text and copy it into Notes.</p>
-    <textarea id="data" spellcheck="false" placeholder="Log text"></textarea>
-    <div class="btns">
-      <button id="copyBtn">Copy</button>
-    </div>
+    <p>Copy diagnostics copies the app version and recent program messages (no answers) so you can send them if something goes wrong.</p>
+    <textarea id="diag" spellcheck="false" hidden></textarea>
     <div class="msg" id="msg"></div>
     <p class="ver">Version <span class="vnum"></span></p>
 

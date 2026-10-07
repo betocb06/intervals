@@ -282,13 +282,20 @@
   }
   function msg(t) { $("msg").textContent = t; }
 
+  // ---------- program messages ----------
+  var events = [];
+  function note(text) {
+    events.push(new Date().toISOString().slice(11, 19) + " " + text);
+    if (events.length > 60) events.shift();
+  }
+
   // ---------- device copy (beta) ----------
   var KEEP_KEY = "intervals.keep", LOG_KEY = "intervals.log";
   function store(k, v) { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); return true; } catch (e) { return false; } }
   function stored(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-  var keepOn = stored(KEEP_KEY) === "1";
+  var keepOn = stored(KEEP_KEY) !== "0";
   function persist() {
-    if (keepOn && rows.length && !store(LOG_KEY, toCsv())) toast("Could not keep a copy on this device.");
+    if (keepOn && rows.length && !store(LOG_KEY, toCsv())) { note("ERROR could not write the device copy"); toast("Could not keep a copy on this device."); }
   }
   function showKeep() {
     $("keepBtn").textContent = keepOn ? "Keep log on this device: ON (beta)" : "Keep log on this device: OFF (beta)";
@@ -316,6 +323,7 @@
   }
 
   function fail(text) {
+    note("ERROR " + text);
     $("startMsg").textContent = "Error: " + text;
     $("msg").textContent = "Error: " + text;
   }
@@ -343,7 +351,7 @@
         var p = loadText(text, f.name);
         if (!p.rows.length) { fail("no answers found. First line: " + (p.sample || "(empty)")); return; }
         onOk(f, p);
-        persist();
+        if (where !== "start") persist();
       } catch (e) {
         fail("failed while loading: " + errText(e));
       } finally {
@@ -357,15 +365,19 @@
     handlePicked(this, "start", function (file, p) {
       $("startSummary").textContent = file.name + ": " + summary(p);
       $("startInfo").hidden = false;
+      $("deviceGo").disabled = true;
+      $("deviceStatus").textContent = "Replaced by the file you loaded. Press Start below.";
     });
   });
   $("fresh").addEventListener("click", function () {
+    if (stored(LOG_KEY) && !confirm("Start fresh? The log kept on this device will be replaced once you answer a card.")) return;
     loadText("", "new log");
     begin();
   });
   $("goBtn").addEventListener("click", begin);
 
   function begin() {
+    persist();
     $("start").classList.remove("open");
     render();
   }
@@ -378,14 +390,27 @@
       render();
     });
   });
-  $("showBtn").addEventListener("click", function () { $("data").value = toCsv(); msg("Log text ready. Tap Copy."); });
+  function diagnostics() {
+    var cached = stored(LOG_KEY);
+    return ["Intervals diagnostics", "version " + APP_VERSION, new Date().toISOString(), navigator.userAgent,
+      "device copy: " + (keepOn ? "on" : "off") + ", stored " + (cached ? cached.length + " characters" : "none"),
+      "rows in memory: " + rows.length + ", unsaved: " + unsaved + ", loaded from: " + (loadedName || "nothing"),
+      "service worker: " + (navigator.serviceWorker && navigator.serviceWorker.controller ? "active" : "none"),
+      "", events.length ? events.join("\n") : "(no messages)"].join("\n") + "\n";
+  }
   $("copyBtn").addEventListener("click", function () {
-    var ta = $("data");
-    if (!ta.value) ta.value = toCsv();
-    ta.focus(); ta.select(); ta.setSelectionRange(0, ta.value.length);
-    var ok = false;
-    try { ok = document.execCommand("copy"); } catch (e) {}
-    msg(ok ? "Copied." : "Select the text and copy it by hand.");
+    var text = diagnostics();
+    function byHand() {
+      var ta = $("diag");
+      ta.value = text; ta.hidden = false;
+      ta.focus(); ta.select(); ta.setSelectionRange(0, ta.value.length);
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) {}
+      msg(ok ? "Copied." : "Select the text and copy it by hand.");
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { msg("Copied."); }, byHand);
+    } else byHand();
   });
 
   function stamp() {
@@ -403,12 +428,10 @@
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
       var m = unsaved; unsaved = 0; updateSave();
-      toast("Download started for " + m + " new answers. If no file appears, use Settings > Show log text.");
+      toast("Download started for " + m + " new answers. If no file appears, tap Copy diagnostics in Settings.");
     } catch (e) {
-      refreshSettings();
-      $("data").value = csv;
-      $("panel").classList.add("open");
-      msg("Could not start a download. Use Settings > Show log text and copy it into Notes instead.");
+      note("ERROR download failed: " + errText(e));
+      toast("Could not start a download. Your answers are still here. Try again.");
     }
   });
 
@@ -495,7 +518,7 @@
 
   $("keepBtn").addEventListener("click", function () {
     keepOn = !keepOn;
-    store(KEEP_KEY, keepOn ? "1" : null);
+    store(KEEP_KEY, keepOn ? "1" : "0");
     if (keepOn) { persist(); toast("Copy kept on this device. Still save the file now and then."); }
     else { store(LOG_KEY, null); toast("Device copy deleted."); }
     showKeep();
@@ -503,17 +526,20 @@
   showKeep();
   Array.prototype.forEach.call(document.querySelectorAll(".vnum"), function (n) { n.textContent = APP_VERSION; });
 
+  $("deviceGo").disabled = true;
   var saved = stored(LOG_KEY);
   if (saved) {
     var sp = loadText(saved, "device copy");
     if (sp.rows.length) {
-      $("deviceSummary").textContent = summary(sp);
-      $("deviceInfo").hidden = false;
-    }
+      $("deviceStatus").textContent = "Found on this device: " + summary(sp);
+      $("deviceGo").disabled = false;
+    } else note("ERROR device copy was found but had no readable answers");
+  } else {
+    $("deviceStatus").textContent = keepOn ? "No log found on this device yet." : "Keeping the log on this device is off (see Settings).";
   }
   $("deviceGo").addEventListener("click", begin);
 
   updateSave();
 
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(function () {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(function (e) { note("ERROR service worker: " + errText(e)); });
 })();
