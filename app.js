@@ -515,5 +515,5 @@
 
   updateSave();
 
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(function () {});
 })();
