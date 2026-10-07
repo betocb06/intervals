@@ -36,7 +36,12 @@
 <div class="panel open" id="start">
   <div class="inner">
     <h2 class="big">Intervals</h2>
-    <p>Load your log file to continue where you stopped, or start fresh. Nothing is kept on this device between sessions, so save the log when you finish.</p>
+    <div id="deviceInfo" hidden>
+      <p><strong>Log found on this device.</strong> <span id="deviceSummary"></span></p>
+      <div class="btns stack"><button id="deviceGo" class="primary">Continue from it</button></div>
+      <p>Or use a file instead:</p>
+    </div>
+    <p>Load your log file to continue where you stopped, or start fresh. Unless you turn on "Keep log on this device" in Settings, nothing is kept between sessions, so save the log when you finish.</p>
     <div class="btns stack">
       <label class="filebtn">Load log<input type="file" id="fileStart"></label>
       <button id="fresh">Start fresh</button>
@@ -74,6 +79,7 @@
 
     <h3>Log file</h3>
     <p id="logInfo"></p>
+    <div class="btns"><button id="keepBtn">Keep log on this device</button></div>
     <div class="btns">
       <label class="filebtn">Load another log<input type="file" id="fileSettings"></label>
       <button id="showBtn">Show log text</button>

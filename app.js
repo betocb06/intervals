@@ -250,6 +250,7 @@
     if (!ok) retry.push({ id: row.id, at: counter + 4 });
     counter++;
     lastId = row.id;
+    persist();
     updateSave();
     render();
   }
@@ -280,6 +281,19 @@
     toast.h = setTimeout(function () { $("toast").textContent = ""; }, 4000);
   }
   function msg(t) { $("msg").textContent = t; }
+
+  // ---------- device copy (beta) ----------
+  var KEEP_KEY = "intervals.keep", LOG_KEY = "intervals.log";
+  function store(k, v) { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); return true; } catch (e) { return false; } }
+  function stored(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  var keepOn = stored(KEEP_KEY) === "1";
+  function persist() {
+    if (keepOn && rows.length && !store(LOG_KEY, toCsv())) toast("Could not keep a copy on this device.");
+  }
+  function showKeep() {
+    $("keepBtn").textContent = keepOn ? "Keep log on this device: ON (beta)" : "Keep log on this device: OFF (beta)";
+    $("keepBtn").classList.toggle("on", keepOn);
+  }
 
   // ---------- load / save ----------
   function loadText(text, label) {
@@ -329,6 +343,7 @@
         var p = loadText(text, f.name);
         if (!p.rows.length) { fail("no answers found. First line: " + (p.sample || "(empty)")); return; }
         onOk(f, p);
+        persist();
       } catch (e) {
         fail("failed while loading: " + errText(e));
       } finally {
@@ -477,6 +492,25 @@
   window.addEventListener("beforeunload", function (e) {
     if (unsaved) { e.preventDefault(); e.returnValue = ""; }
   });
+
+  $("keepBtn").addEventListener("click", function () {
+    keepOn = !keepOn;
+    store(KEEP_KEY, keepOn ? "1" : null);
+    if (keepOn) { persist(); toast("Copy kept on this device. Still save the file now and then."); }
+    else { store(LOG_KEY, null); toast("Device copy deleted."); }
+    showKeep();
+  });
+  showKeep();
+
+  var saved = stored(LOG_KEY);
+  if (saved) {
+    var sp = loadText(saved, "device copy");
+    if (sp.rows.length) {
+      $("deviceSummary").textContent = summary(sp);
+      $("deviceInfo").hidden = false;
+    }
+  }
+  $("deviceGo").addEventListener("click", begin);
 
   updateSave();
 
