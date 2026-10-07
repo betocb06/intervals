@@ -287,7 +287,7 @@
     rows = p.rows;
     unsaved = 0; retry = []; lastId = null; counter = 0;
     indexRows();
-    loadedName = label || "pasted text";
+    loadedName = label || "";
     updateSave();
     return p;
   }
@@ -344,15 +344,6 @@
       $("startInfo").hidden = false;
     });
   });
-  $("startPasteBtn").addEventListener("click", function () {
-    var t = $("startPaste").value;
-    if (!t.trim()) { $("startMsg").textContent = "Paste the log text first."; return; }
-    var p = loadText(t, "pasted text");
-    if (!p.rows.length) { fail("no answers found. First line: " + (p.sample || "(empty)")); return; }
-    $("startMsg").textContent = "";
-    $("startSummary").textContent = summary(p);
-    $("startInfo").hidden = false;
-  });
   $("fresh").addEventListener("click", function () {
     loadText("", "new log");
     begin();
@@ -371,15 +362,6 @@
       refreshSettings();
       render();
     });
-  });
-  $("pasteLoadBtn").addEventListener("click", function () {
-    var t = $("data").value;
-    if (!t.trim()) { msg("Paste the log text first."); return; }
-    if (unsaved && !confirm("You have " + unsaved + " unsaved answers. Replace them?")) return;
-    var p = loadText(t, "pasted text");
-    msg("Loaded. " + summary(p));
-    refreshSettings();
-    render();
   });
   $("showBtn").addEventListener("click", function () { $("data").value = toCsv(); msg("Log text ready. Tap Copy."); });
   $("copyBtn").addEventListener("click", function () {
@@ -411,7 +393,7 @@
       refreshSettings();
       $("data").value = csv;
       $("panel").classList.add("open");
-      msg("Could not start a download. Copy this text into Notes instead.");
+      msg("Could not start a download. Use Settings > Show log text and copy it into Notes instead.");
     }
   });
 
