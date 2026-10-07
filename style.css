@@ -92,3 +92,4 @@ h2.big { font-family: ui-serif, "New York", Georgia, serif; font-size: 40px; mar
 .ver { color: var(--muted); font-size: 12px; }
 .btns button:disabled { opacity: 0.45; }
 textarea[hidden] { display: none; }
+#panel { z-index: 20; }
