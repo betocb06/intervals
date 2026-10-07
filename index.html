@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Intervals">
+<title>Intervals</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header>
+    <button id="openSettings" aria-label="Settings">Settings</button>
+    <button id="saveBtn" class="savebtn" aria-label="Save log">Save log</button>
+  </header>
+  <div class="substats" id="stats"></div>
+  <main>
+    <div class="card" id="card" role="button" tabindex="0" aria-label="Flashcard">
+      <div class="q" id="q"></div>
+      <div class="answer" id="a" hidden></div>
+      <div class="hint" id="hint">Tap when you have decided</div>
+    </div>
+    <button class="reveal" id="reveal">Show answer</button>
+    <div class="row" id="row" hidden>
+      <button id="no">Wrong</button>
+      <button id="yes">Right</button>
+    </div>
+    <div class="msg center" id="toast"></div>
+  </main>
+</div>
+
+<div class="panel open" id="start">
+  <div class="inner">
+    <h2 class="big">Intervals</h2>
+    <p>Load your log file to continue where you stopped, or start fresh. Nothing is kept on this device between sessions, so save the log when you finish.</p>
+    <div class="btns stack">
+      <label class="filebtn">Load log<input type="file" id="fileStart"></label>
+      <button id="fresh">Start fresh</button>
+    </div>
+    <div class="msg" id="startMsg"></div>
+    <div id="startInfo" hidden>
+      <p id="startSummary"></p>
+      <div class="btns stack"><button id="goBtn" class="primary">Start</button></div>
+    </div>
+    <p>No file picker? Paste the log text instead:</p>
+    <textarea id="startPaste" spellcheck="false" placeholder="Paste log text"></textarea>
+    <div class="btns stack"><button id="startPasteBtn">Load pasted text</button></div>
+  </div>
+</div>
+
+<div class="panel" id="panel">
+  <div class="inner">
+    <button class="close" id="closeSettings">Done</button>
+    <h2>Settings</h2>
+
+    <h3>Question type</h3>
+    <div class="seg" id="dirSeg">
+      <button data-v="both">Both</button>
+      <button data-v="fwd">C → b5</button>
+      <button data-v="back">b5 ← C</button>
+    </div>
+
+    <h3>Roots</h3>
+    <div class="seg" id="rootSeg">
+      <button data-v="all">All 15</button>
+      <button data-v="sharp">Sharps</button>
+      <button data-v="flat">Flats</button>
+    </div>
+    <p>Sharps: C, G, D, A, E, B, F#, C#. Flats: C, F, Bb, Eb, Ab, Db, Gb, Cb.</p>
+
+    <h3>What the log says</h3>
+    <div id="insights"></div>
+
+    <h3>Log file</h3>
+    <p id="logInfo"></p>
+    <div class="btns">
+      <label class="filebtn">Load another log<input type="file" id="fileSettings"></label>
+      <button id="showBtn">Show log text</button>
+    </div>
+    <p>If saving a file does not work, show the text, copy it into Notes, and paste it back here later.</p>
+    <textarea id="data" spellcheck="false" placeholder="Log text"></textarea>
+    <div class="btns">
+      <button id="copyBtn">Copy</button>
+      <button id="pasteLoadBtn">Load pasted text</button>
+    </div>
+    <div class="msg" id="msg"></div>
+
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
