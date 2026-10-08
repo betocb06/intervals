@@ -14,16 +14,18 @@
     { n: "B", l: 6, a: 0 }, { n: "F#", l: 3, a: 1 }, { n: "C#", l: 0, a: 1 }
   ];
 
+  // [name, degree, alteration, group]. Group "rare" (b4, #5) and "compound" (9th to 13th)
+  // are hidden unless switched on in Settings.
   var INTERVALS = [
     ["b2", 2, -1], ["2", 2, 0],
     ["b3", 3, -1], ["3", 3, 0],
-    ["b4", 4, -1], ["4", 4, 0], ["#4", 4, 1],
-    ["b5", 5, -1], ["5", 5, 0], ["#5", 5, 1],
+    ["b4", 4, -1, "rare"], ["4", 4, 0], ["#4", 4, 1],
+    ["b5", 5, -1], ["5", 5, 0], ["#5", 5, 1, "rare"],
     ["b6", 6, -1], ["6", 6, 0],
     ["7", 7, -1], ["maj7", 7, 0],
-    ["b9", 9, -1], ["9", 9, 0],
-    ["b11", 11, -1], ["11", 11, 0], ["#11", 11, 1],
-    ["b13", 13, -1], ["13", 13, 0]
+    ["b9", 9, -1, "compound"], ["9", 9, 0, "compound"],
+    ["b11", 11, -1, "compound"], ["11", 11, 0, "compound"], ["#11", 11, 1, "compound"],
+    ["b13", 13, -1, "compound"], ["13", 13, 0, "compound"]
   ];
 
   function mod(n, m) { return ((n % m) + m) % m; }
@@ -157,7 +159,7 @@
   }
 
   // ---------- session state ----------
-  var settings = { dir: "both", roots: "all" };
+  var settings = { dir: "both", roots: "all", compound: "off", rare: "off" };
   var counter = 0, retry = [], current = null, lastId = null, revealed = false;
   var tStart = 0, hiddenAt = 0, hiddenSum = 0, shownSec = 0;
 
@@ -165,6 +167,8 @@
     if (settings.dir !== "both" && c.dir !== settings.dir) return false;
     if (settings.roots === "sharp" && c.root.a < 0) return false;
     if (settings.roots === "flat" && c.root.a > 0) return false;
+    if (c.iv[3] === "compound" && settings.compound !== "on") return false;
+    if (c.iv[3] === "rare" && settings.rare !== "on") return false;
     return true;
   }
 
@@ -346,9 +350,10 @@
       try {
         if (text === null) { fail("could not read the file: " + err); return; }
         if (!text.length) { fail("the file is empty. If it is in iCloud, wait for it to download and pick it again."); return; }
+        var probe = parseLog(text);
+        if (!probe.rows.length) { fail("no answers found. First line: " + (probe.sample || "(empty)") + ". Your current log was not changed."); return; }
         if ((where === "settings" || begun) && unsaved && !confirm("You have " + unsaved + " unsaved answers. Replace them by loading this file?")) return;
         var p = loadText(text, f.name);
-        if (!p.rows.length) { fail("no answers found. First line: " + (p.sample || "(empty)")); return; }
         onOk(f, p);
         if (where !== "start") persist();
       } catch (e) {
@@ -455,7 +460,12 @@
   var PREF = "intervals-prefs";
   try {
     var pr = JSON.parse(localStorage.getItem(PREF) || "null");
-    if (pr && pr.dir && pr.roots) settings = pr;
+    if (pr) {
+      if (["both", "fwd", "back"].indexOf(pr.dir) >= 0) settings.dir = pr.dir;
+      if (["all", "sharp", "flat"].indexOf(pr.roots) >= 0) settings.roots = pr.roots;
+      if (pr.compound === "on") settings.compound = "on";
+      if (pr.rare === "on") settings.rare = "on";
+    }
   } catch (e) {}
   function savePrefs() { try { localStorage.setItem(PREF, JSON.stringify(settings)); } catch (e) {} }
 
@@ -494,6 +504,8 @@
   function refreshSettings() {
     markSeg("dirSeg", settings.dir);
     markSeg("rootSeg", settings.roots);
+    markSeg("compoundSeg", settings.compound);
+    markSeg("rareSeg", settings.rare);
     $("insights").innerHTML = insights();
     $("logInfo").textContent = (loadedName ? "Loaded: " + loadedName + ". " : "") + unsaved + " unsaved answers.";
   }
@@ -510,6 +522,8 @@
   }
   bindSeg("dirSeg", "dir");
   bindSeg("rootSeg", "roots");
+  bindSeg("compoundSeg", "compound");
+  bindSeg("rareSeg", "rare");
   function openSettings() { refreshSettings(); msg(""); $("panel").classList.add("open"); }
   $("openSettings").addEventListener("click", openSettings);
   $("closeSettings").addEventListener("click", function () { $("panel").classList.remove("open"); });
